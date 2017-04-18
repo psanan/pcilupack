@@ -1,0 +1,6 @@
+# ignore typical build dir names
+build
+arch-*
+
+# we suggest that people just put ilupack here, so ignore it
+ilupack
