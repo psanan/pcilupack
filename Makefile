@@ -16,6 +16,10 @@ libpcilupack.c := pcilupack.c
 libpcilupack.o := $(patsubst %.c,$(OBJDIR)/%.o,$(libpcilupack.c))
 libpcilupack.h := pcilupack.h
 
+libpcildl.c := pcildl.c
+libpcildl.o := $(patsubst %.c,$(OBJDIR)/%.o,$(libpcildl.c))
+libpcildl.h := pcildl.h
+
 include $(PETSC_DIR)/lib/petsc/conf/variables
 
 # $(call SONAME_FUNCTION,libfoo,abiversion)
@@ -40,14 +44,21 @@ libpcilupack_libname := $(call libname_function,$(LIBDIR)/libpcilupack)
 libpcilupack_static  := $(LIBDIR)/libpcilupack.$(AR_LIB_SUFFIX)
 libpcilupack         := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libpcilupack_shared) $(libpcilupack_soname) $(libpcilupack_libname),$(libpcilupack_static))
 
+libpcildl_shared  := $(LIBDIR)/libpcildl.$(SL_LINKER_SUFFIX) 
+libpcildl_soname  := $(call soname_function,$(LIBDIR)/libpcildl)
+libpcildl_libname := $(call libname_function,$(LIBDIR)/libpcildl)
+libpcildl_static  := $(LIBDIR)/libpcildl.$(AR_LIB_SUFFIX)
+libpcildl         := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libpcildl_shared) $(libpcildl_soname) $(libpcildl_libname),$(libpcildl_static))
+
 # ILUPACK headers
 PCILUPACK_ILUPACK_INCLUDE := -I${PCILUPACK_ILUPACK_DIR}/include
 PCILUPACK_ILUPACK_LIBS := -L${PCILUPACK_ILUPACK_DIR}/lib/${PCILUPACK_ILUPACK_PLATFORM} -lilupack_mc64 -lcamd -lamd -lsuitesparseconfig -lmetisomp -lmetis -lmetisomp -lsparspak -llapack -lblaslike -lblas ${PCILUPACK_ILUPACK_DIR}/notdistributed/MC64D.o ${PCILUPACK_ILUPACK_DIR}/notdistributed/MC21D.o ${PCILUPACK_ILUPACK_DIR}/notdistributed/MC64S.o ${PCILUPACK_ILUPACK_DIR}/notdistributed/MC21S.o
 PCILUPACK_OPENMP_FLAG=-fopenmp
 
-all: libpcilupack
+all: libpcilupack libpcildl
 
 libpcilupack : $(libpcilupack)
+libpcildl : $(libpcildl)
 
 ### Rules
 
@@ -58,6 +69,7 @@ PCILUPACK_LIB           = $(PCILUPACK_C_SH_LIB_PATH) -L$(PCILUPACK_LIB_DIR) -lpc
 # compile an object from a generated c file
 $(OBJDIR)/%.o: %.c | $$(@D)/.DIR
 	$(PETSC_COMPILE) $(PCILUPACK_ILUPACK_INCLUDE) $(C_DEPFLAGS) $< -o $@ 
+
 
 $(libpcilupack_static): $(libpcilupack.o) | $$(@D)/.DIR
 	$(AR) $(AR_FLAGS) $@ $^ $(PCILUPACK_ILUPACK_LIBS)
@@ -70,10 +82,29 @@ ifneq ($(DSYMUTIL),true)
 	$(DSYMUTIL) $@
 endif
 
-$(libpcilupack_shared): $(libpcilupack_libname)
+$(libpcildl_shared): $(libpcildl_libname)
 	@ln -sf $(notdir $<) $@
 
-$(libpcilupack_soname): $(libpcilupack_libname)
+$(libpcildl_soname): $(libpcildl_libname)
+	@ln -sf $(notdir $<) $@
+
+
+
+$(libpcildl_static): $(libpcildl.o) | $$(@D)/.DIR
+	$(AR) $(AR_FLAGS) $@ $^ $(PCILUPACK_ILUPACK_LIBS)
+	$(RANLIB) $@
+
+# shared library linking
+$(libpcildl_libname): $(libpcildl.o) | $$(@D)/.DIR
+	$(CLINKER) $(PCILUPACK_OPENMP_FLAG) $(sl_linker_args) -o $@ $^ $(UISCE_EXTERNAL_LIB_BASIC) $(PCILUPACK_ILUPACK_LIBS)
+ifneq ($(DSYMUTIL),true)
+	$(DSYMUTIL) $@
+endif
+
+$(libpcildl_shared): $(libpcildl_libname)
+	@ln -sf $(notdir $<) $@
+
+$(libpcildl_soname): $(libpcildl_libname)
 	@ln -sf $(notdir $<) $@
 
 # make print VAR=the-variable
@@ -91,9 +122,10 @@ clean:
 install:
 	./install.py --prefix=$(DESTDIR)
 
+test:
 # TODO Tests  (add to clean if needbe)	
 
-.PHONY: all clean print libpcilupack install test 
+.PHONY: all clean print libpcilupack libpcildl install test 
 
 .PRECIOUS: %/.DIR
 
@@ -102,3 +134,9 @@ libpcilupack.d := $(libpcilupack.o:%.o=%.d)
 $(libpcilupack.d) : ;
 
 -include $(libpcilupack.d)
+
+libpcildl.d := $(libpcildl.o:%.o=%.d)
+
+$(libpcildl.d) : ;
+
+-include $(libpcildl.d)
