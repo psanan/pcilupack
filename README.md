@@ -1,5 +1,5 @@
 # PETSc ILUPACK Plugin
-By [Patrick Sanan](www.patricksanan.com) (@psanan)
+Maintained by [Patrick Sanan](www.patricksanan.com) (@psanan)
 
 This is a prototype plugin for [PETSc][1] which allows the use of preconditioners 
 from [ILUPACK][2], by [Matthias Bollhoefer][3].
