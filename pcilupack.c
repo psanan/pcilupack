@@ -56,56 +56,56 @@ static PetscErrorCode ILUPACKSetUp(PC_ILUPACK *ilupack,PetscInt nA,PetscScalar v
   }
 #endif
   
-  // logical pointer array, initialized with 0
+  /* logical pointer array, initialized with 0 */
   ilupack->ia=(integer *)calloc((nB+1),sizeof(integer));
   ia=ilupack->ia;
   
-  // count number of nonzeros in the upper triangular part
+  /* count number of nonzeros in the upper triangular part */
   for (i=0; i<nB; i++) {
 	  for (j=row_ptr[i]; j<row_ptr[i+1]; j++) {
       k=col_ind[j];
-      // upper triangular part only
+      /* upper triangular part only */
       if (k>=i) {
-        // count nnz by row, do not use ia[0] (see below, why)
+        /* count nnz by row, do not use ia[0] (see below, why) */
         ia[i+1]++;
         nnz++;
       }
 	  }
   } 
-  // switch from nz to pointer. Now this refers to the physical beginning of each (empty) row
-  // this is why we used ia[1],...,ia[nB] previously and left ia[0] untouched
+  /* switch from nz to pointer. Now this refers to the physical beginning of each (empty) row */
+  /* this is why we used ia[1],...,ia[nB] previously and left ia[0] untouched */
   for (i=0; i<nB; i++)
 	  ia[i+1]+=ia[i];
-  // array of column indices
+  /* array of column indices */
   ilupack->ja=(integer *)malloc(nnz*sizeof(integer));
   ja=ilupack->ja;
-  // array of numerical values
+  /* array of numerical values */
   ilupack->a =(FLOAT *)  malloc(nnz*sizeof(FLOAT));
   a=ilupack->a;
-  // extract upper triangular part
+  /* extract upper triangular part */
   for (i=0; i<nB; i++) {
 	  for (j=row_ptr[i]; j<row_ptr[i+1]; j++) {
       k=col_ind[j];
-      // upper triangular part only
+      /* upper triangular part only */
       if (k>=i) {
-        // current start of the unoccupied part of row i
+        /* current start of the unoccupied part of row i */
         l=ia[i];
-        // FORTRAN starts indexing with 1
+        /* FORTRAN starts indexing with 1 */
         ja[l]=k+1;
-        // copy numerical value
+        /* copy numerical value */
         a[l]=val[j];
-        // free part of row i incremented
+        /* free part of row i incremented */
         ia[i]=l+1;
-      } // end if
-	  } // end for j
-  } // end for i
-  // now the entries ia[0],...,ia[nB-1] of the pointer array must have those values
-  // that were previously stored as pointers in ia[1],...,ia[nB]
-  // shift pointers back, FORTRAN starts indexing with 1
+      }
+	  }
+  }
+  /* now the entries ia[0],...,ia[nB-1] of the pointer array must have those values */
+  /* that were previously stored as pointers in ia[1],...,ia[nB] */
+  /* shift pointers back, FORTRAN starts indexing with 1 */
   for (i=nB; i>0; i--) ia[i]=ia[i-1]+1;
   ia[0]=1;
   
-  // now ia,ja,a contain the upper triangular part of the matrix in FORTRAN format
+  /* now ia,ja,a contain the upper triangular part of the matrix in FORTRAN format */
 
   /* Hard-coded! */
   ilupack->B.isreal=1;      /* real matrix */

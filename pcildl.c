@@ -1,8 +1,8 @@
-// FORTRAN names called from C use "_"
+ /*FORTRAN names called from C use "_"*/
 #define __UNDERSCORE__
-// ILUPACK drivers use by default 64 bit long int as "integer"
-//#define _LONG_INTEGER_
-// we only use the real double precision version as "FLOAT"
+ /*ILUPACK drivers use by default 64 bit long int as "integer"*/
+/*#define _LONG_INTEGER_*/
+ /*we only use the real double precision version as "FLOAT"*/
 #define _DOUBLE_REAL_
 
 #include "ilupack.h"
@@ -12,7 +12,7 @@
 #include "pcildl.h"
 #include <petsc/private/pcimpl.h>   /*I "petscpc.h" I*/
 
-// elbow factor for the expected relative fill-in computed by the incomplete LDL^T factorization
+ /*elbow factor for the expected relative fill-in computed by the incomplete LDL^T factorization*/
 #define ELBOW    3.0
 
 /* define this to do some extra timing 
@@ -36,8 +36,8 @@ typedef struct {
 
 static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],PetscInt row_ptr[],PetscInt col_ind[])
 {
-  // ILDL drivers are written in FORTRAN 77, indexing is done in FORTRAN style (1,...,nA) and
-  // symmetric matrices only consist of half of the matrix, say upper triangular part
+  /* ILDL drivers are written in FORTRAN 77, indexing is done in FORTRAN style (1,...,nA) and */
+  /* symmetric matrices only consist of half of the matrix, say upper triangular part */
   integer       i,j,k,l,nnz=0, *ia, *ja, *p, *invq, nB, ierr, *ibuff, *jlu, posiwk, PILUCparam;
   FLOAT         *a, *pcolscale, *prowscale, *dbuff, *alu;
   LONG_INT      imem, myimem;
@@ -63,56 +63,54 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
   MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 #endif
   
-  // logical pointer array, initialized with 0
+  /* logical pointer array, initialized with 0 */
   ia=(integer *)calloc((nB+1),sizeof(integer));
   
-  // count number of nonzeros in the upper triangular part
+  /* count number of nonzeros in the upper triangular part */
   for (i=0; i<nB; i++) {
 	  for (j=row_ptr[i]; j<row_ptr[i+1]; j++) {
       k=col_ind[j];
-      // upper triangular part only
+      /* upper triangular part only */
       if (k>=i) {
-        // count nnz by row, do not use ia[0] (see below, why)
+        /* count nnz by row, do not use ia[0] (see below, why) */
         ia[i+1]++;
         nnz++;
-      } // end if
-	  } // end for j
-  } // end for i
-  // switch from nz to pointer. Now this refers to the physical beginning of each (empty) row
-  // this is why we used ia[1],...,ia[nB] previously and left ia[0] untouched
+      }
+	  }
+  }
+  /* switch from nz to pointer. Now this refers to the physical beginning of each (empty) row */
+  /* this is why we used ia[1],...,ia[nB] previously and left ia[0] untouched */
   for (i=0; i<nB; i++)
 	  ia[i+1]+=ia[i];
-  // array of column indices
+  /* array of column indices */
   ja=(integer *)malloc(nnz*sizeof(integer));
-  // array of numerical values
+  /* array of numerical values */
   a =(FLOAT *)  malloc(nnz*sizeof(FLOAT));
-  // extract upper triangular part
+  /* extract upper triangular part */
   for (i=0; i<nB; i++) {
 	  for (j=row_ptr[i]; j<row_ptr[i+1]; j++) {
       k=col_ind[j];
-      // upper triangular part only
+      /* upper triangular part only */
       if (k>=i) {
-        // current start of the unoccupied part of row i
+        /* current start of the unoccupied part of row i */
         l=ia[i];
-        // FORTRAN starts indexing with 1
+        /* FORTRAN starts indexing with 1 */
         ja[l]=k+1;
-        // copy numerical value
+        /* copy numerical value */
         a[l]=val[j];
-        // free part of row i incremented
+        /* free part of row i incremented */
         ia[i]=l+1;
-      } // end if
-	  } // end for j
-  } // end for i
-  // now the entries ia[0],...,ia[nB-1] of the pointer array must have those values
-  // that were previously stored as pointers in ia[1],...,ia[nB]
-  // shift pointers back, FORTRAN starts indexing with 1
+      }
+	  }
+  }
+  /* now the entries ia[0],...,ia[nB-1] of the pointer array must have those values */
+  /* that were previously stored as pointers in ia[1],...,ia[nB] */
+  /* shift pointers back, FORTRAN starts indexing with 1 */
   for (i=nB; i>0; i--)
 	  ia[i]=ia[i-1]+1;
   ia[0]=1;
   
-  
-  
-  // now ia,ja,a contain the upper triangular part of the matrix in FORTRAN format
+  /* now ia,ja,a contain the upper triangular part of the matrix in FORTRAN format */
   B.nr = B.nc=nB;
   B.nnz = nnz;
   B.ia = ia;
@@ -126,13 +124,13 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
 #endif
 
 
-  // initialize ILUPACK options structure to its default options
+  /* initialize ILUPACK options structure to its default options */
   DSYMAMGinit(&B,&options);
 
-  // threshold for ILU
+  /* threshold for ILU */
   options.droptol = (FLOAT) ildl->droptol;
 
-  // turn on matching
+  /* turn on matching */
   options.matching = ildl->matching ? 1 : 0;
 
   switch (ildl->ordering) {
@@ -152,14 +150,14 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
       SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"Unrecognized ILDL ordering type");
   }
   
-  // -----------------------------------------------------------------
-  // ----- preprocessing part: scaling and reordering the system -----
-  // memory for scaling and permutation
+  /* ----------------------------------------------------------------- */
+  /* ----- preprocessing part: scaling and reordering the system ----- */
+  /* memory for scaling and permutation */
   p   =(integer *)MAlloc((size_t)B.nc*sizeof(integer),"CSRInterface:p");
   invq=(integer *)MAlloc((size_t)B.nc*sizeof(integer),"CSRInterface:invq");
   pcolscale=(FLOAT *)MAlloc((size_t)B.nc*sizeof(FLOAT),"CSRInterface:pcolscale");
   prowscale=pcolscale;
-  // matching turned on?
+  /* matching turned on? */
   if (options.matching) {
     if (!strcmp("metise",options.ordering))
 	    ierr=DSYMperm_mc64_metis_e(B, prowscale, pcolscale, p, invq, &nB, &options);
@@ -167,10 +165,10 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
 	    ierr=DSYMperm_mc64_amd(B, prowscale, pcolscale, p, invq, &nB, &options);
     else if (!strcmp("rcm",options.ordering))
 	    ierr=DSYMperm_mc64_rcm(B, prowscale, pcolscale, p, invq, &nB, &options);
-    else // METIS nested dissection by nodes used otherwise
+    else /* METIS nested dissection by nodes used otherwise */
 	    ierr=DSYMperm_mc64_metis_n(B, prowscale, pcolscale, p, invq, &nB, &options);
   }
-  else { // no matching
+  else { /* no matching */
     if (!strcmp("metisn",options.ordering))
 	    ierr=DSYMperm_metis_n(B, prowscale, pcolscale, p, invq, &nB, &options);
     else if (!strcmp("metise",options.ordering))
@@ -179,11 +177,11 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
 	    ierr=DSYMperm_amd(B, prowscale, pcolscale, p, invq, &nB, &options);
     else if (!strcmp("rcm",options.ordering))
 	    ierr=DSYMperm_rcm(B, prowscale, pcolscale, p, invq, &nB, &options);
-    else  // none
+    else  /* none */
 	    ierr=DSYMperm_null(B, prowscale, pcolscale, p, invq, &nB, &options);
   }
-  // -------------------- END preprocessing part ---------------------
-  // -----------------------------------------------------------------
+  /* -------------------- END preprocessing part --------------------- */
+  /* ----------------------------------------------------------------- */
 
   /* Free some data that we won't use anymore */
   FREE(options.dbuff);
@@ -195,34 +193,34 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
   wtime = MPI_Wtime();
 #endif
   
-  // -----------------------------------------------------------------
-  // ------------ compute incomplete LDL^T factorization -------------
+  /* ----------------------------------------------------------------- */
+  /* ------------ compute incomplete LDL^T factorization ------------- */
   PILUCparam=0;
-  // bit 0: simple dual threshold dropping strategy
-  // bit 1: a zero pivot at step k is replaced by a small number
+  /* bit 0: simple dual threshold dropping strategy */
+  /* bit 1: a zero pivot at step k is replaced by a small number */
   PILUCparam|=2;
-  // bit 2: simple Schur complement
-  // bit 3: ILU is computed for the first time
-  // bit 4: simple inverse-based dropping would have been used if it applies
-  // bit 5: diagonal compensation is possibly done
+  /* bit 2: simple Schur complement */
+  /* bit 3: ILU is computed for the first time */
+  /* bit 4: simple inverse-based dropping would have been used if it applies */
+  /* bit 5: diagonal compensation is possibly done */
   
-  // auxiliary buffers
+  /* auxiliary buffers */
   ibuff=(integer *)MAlloc((size_t)14*B.nc*sizeof(integer),"CSRInterface:ibuff");
   dbuff=(FLOAT *)  MAlloc((size_t)4*B.nc*sizeof(FLOAT),"CSRInterface:dbuff");
   
-  // ILU buffers
-  // just a simple guess at least 2nB+1!
+  /* ILU buffers */
+  /* just a simple guess at least 2nB+1! */
   mem=ELBOW*B.ia[B.nr]+1;
   jlu=(integer *)MAlloc((size_t)mem*sizeof(integer),"DSYMildlfactor");
   alu=(FLOAT *)  MAlloc((size_t)mem*sizeof(FLOAT),"DSYMildlfactor");
   
-  // since FORTRAN77 does not have memory allocation we need to provide
-  // enough memory in advance (mem is a guess). If it turns out that the memory
-  // is not sufficient, then the FORTRAN77 routine DSYMiluc will stop, the
-  // external C-wrapper has to do a "realloc" and then calls the FORTRAN77 code
-  // again. Note that DSYMiluc will not restart from scratch but return to
-  // the position where it stopped previously (reverse communincation, static
-  // variables) and continue the incomplete LDL^T factorization
+  /* since FORTRAN77 does not have memory allocation we need to provide */
+  /* enough memory in advance (mem is a guess). If it turns out that the memory */
+  /* is not sufficient, then the FORTRAN77 routine DSYMiluc will stop, the */
+  /* external C-wrapper has to do a "realloc" and then calls the FORTRAN77 code */
+  /* again. Note that DSYMiluc will not restart from scratch but return to */
+  /* the position where it stopped previously (reverse communincation, static */
+  /* variables) and continue the incomplete LDL^T factorization */
   posiwk=0;
   ierr=0;
   do {
@@ -232,14 +230,14 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
              p,invq,alu,jlu,&imem,
              dbuff,ibuff,&posiwk,&ierr);
     
-    // not enough memory for ILDL?
+    /* not enough memory for ILDL? */
     if (posiwk>0) {
-	    // total amount of memory requested by the parameters
+	    /* total amount of memory requested by the parameters */
 	    myimem=ELBOW*(size_t)B.ia[B.nr];
 	    mem+=myimem;
 	    jlu=(integer *)ReAlloc(jlu,mem*sizeof(integer),"CSRInterface:jlu");
 	    alu=(FLOAT *)  ReAlloc(alu,mem*sizeof(FLOAT),  "CSRInterface:alu");
-    } // end if
+    } /* end if */
   } while (posiwk>0);
   if (ierr) {
     printf("ILDL terminated with error code %d\n",ierr);
@@ -257,8 +255,8 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
 #ifdef PCILDL_PRINT_FILL
   ierr = PetscPrintf(PETSC_COMM_SELF,"relative fill ILDL/A: %8.1le (wrt %D nz)\n",((double)jlu[nB])/B.ia[nB],B.ia[nB]);
 #endif
-  // ---------------------- END incomplete LDL^T ---------------------
-  // -----------------------------------------------------------------
+  /* ---------------------- END incomplete LDL^T --------------------- */
+  /* ----------------------------------------------------------------- */
 
   free(a);
   free(ia);
