@@ -1,0 +1,33 @@
+factorization successful with 2 levels completed
+final elbow space factor=    2.45
+  0 KSP Residual norm 0.50586 
+  1 KSP Residual norm 0.0367037 
+  2 KSP Residual norm 0.00535413 
+  3 KSP Residual norm 0.00354619 
+  4 KSP Residual norm 0.000993214 
+  5 KSP Residual norm 0.000139832 
+  6 KSP Residual norm 3.69504e-05 
+  7 KSP Residual norm 1.78196e-05 
+  8 KSP Residual norm 5.21677e-06 
+  9 KSP Residual norm 5.97164e-07 
+KSP Object: 1 MPI processes
+  type: gmres
+    GMRES: restart=30, using Classical (unmodified) Gram-Schmidt Orthogonalization with no iterative refinement
+    GMRES: happy breakdown tolerance 1e-30
+  maximum iterations=10000, initial guess is zero
+  tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+  left preconditioning
+  using PRECONDITIONED norm type for convergence test
+PC Object: 1 MPI processes
+  type: ilupack
+    ILUPACK: droptol  : 0.01
+    ILUPACK: droptolS : 0.01
+    ILUPACK: condest  : 10.
+  linear system matrix = precond matrix:
+  Mat Object:   1 MPI processes
+    type: seqaij
+    rows=737, cols=737
+    total: nonzeros=3529, allocated nonzeros=3529
+    total number of mallocs used during MatSetValues calls =0
+      has attached null space
+      not using I-node routines

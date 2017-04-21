@@ -4,3 +4,7 @@ arch-*
 
 # we suggest that people just put ilupack here, so ignore it
 ilupack
+
+# This is an example which we copy from PETSc
+ex50.c
+ex50

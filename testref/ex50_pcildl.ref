@@ -1,0 +1,35 @@
+relative fill ILDL/A:  2.2e+00 (wrt 2134 nz)
+  0 KSP Residual norm 0.226575 
+  1 KSP Residual norm 0.0571356 
+  2 KSP Residual norm 0.0119421 
+  3 KSP Residual norm 0.00483765 
+  4 KSP Residual norm 0.0028311 
+  5 KSP Residual norm 0.00136442 
+  6 KSP Residual norm 0.000386819 
+  7 KSP Residual norm 0.000136591 
+  8 KSP Residual norm 7.31478e-05 
+  9 KSP Residual norm 4.53929e-05 
+ 10 KSP Residual norm 2.32093e-05 
+ 11 KSP Residual norm 5.11449e-06 
+ 12 KSP Residual norm 9.96986e-07 
+KSP Object: 1 MPI processes
+  type: gmres
+    GMRES: restart=30, using Classical (unmodified) Gram-Schmidt Orthogonalization with no iterative refinement
+    GMRES: happy breakdown tolerance 1e-30
+  maximum iterations=10000, initial guess is zero
+  tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+  left preconditioning
+  using PRECONDITIONED norm type for convergence test
+PC Object: 1 MPI processes
+  type: ildl
+    ILDL: matching : 1
+    ILDL: droptol : 0.01
+    ILDL: ordering : metisn
+  linear system matrix = precond matrix:
+  Mat Object:   1 MPI processes
+    type: seqaij
+    rows=737, cols=737
+    total: nonzeros=3529, allocated nonzeros=3529
+    total number of mallocs used during MatSetValues calls =0
+      has attached null space
+      not using I-node routines

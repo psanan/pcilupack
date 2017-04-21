@@ -117,15 +117,36 @@ print:
 	@touch $@
 
 clean:
-	rm -rf $(OBJDIR) $(LIBDIR) 
+	rm -rf $(OBJDIR) $(LIBDIR) ex50
 
 install:
 	./install.py --prefix=$(DESTDIR)
 
-test:
-# TODO Tests  (add to clean if needbe)	
+test: test_pcildl test_pcilupack
 
-.PHONY: all clean print libpcilupack libpcildl install test 
+test_pcildl : ex50
+	-@${MPIEXEC} -n 1 ./ex50 -da_grid_x 67 -da_rid_y 79 -dll_append ${PETSC_ARCH}/lib/libpcildl.so -pc_type ildl -ksp_view -ksp_monitor_short > ex50_pcildl.tmp 2>&1; \
+	   if (${DIFF} testref/ex50_pcildl.ref ex50_pcildl.tmp) then true; \
+	   else printf "${PWD}\nPossible problem with with ex50_pcildl, diffs above\n=========================================\n"; fi; \
+	   ${RM} -f ex50_pcildl.tmp
+
+test_pcilupack : ex50
+	-@${MPIEXEC} -n 1 ./ex50 -da_grid_x 67 -da_rid_y 79 -dll_append ${PETSC_ARCH}/lib/libpcilupack.so -pc_type ilupack -ksp_view -ksp_monitor_short > ex50_pcilupack.tmp 2>&1; \
+	   if (${DIFF} testref/ex50_pcilupack.ref ex50_pcilupack.tmp) then true; \
+	   else printf "${PWD}\nPossible problem with with ex50_pcilupack, diffs above\n=========================================\n"; fi; \
+	   ${RM} -f ex50_pcilupack.tmp
+
+ex50.c :
+	cp ${PETSC_DIR}/src/ksp/ksp/examples/tutorials/ex50.c .
+
+ex50: ex50.o
+	-${CLINKER} -o ex50 ex50.o ${PETSC_KSP_LIB}
+	${RM} ex50.o ex50.d
+
+ex50.o : ex50.c
+	$(PETSC_COMPILE) $(C_DEPFLAGS) $< -o $@ 
+
+.PHONY: all clean print libpcilupack libpcildl install test test_pcildl test_pcilupack
 
 .PRECIOUS: %/.DIR
 
