@@ -82,10 +82,10 @@ ifneq ($(DSYMUTIL),true)
 	$(DSYMUTIL) $@
 endif
 
-$(libpcildl_shared): $(libpcildl_libname)
+$(libpcilupack_shared): $(libpcilupack_libname)
 	@ln -sf $(notdir $<) $@
 
-$(libpcildl_soname): $(libpcildl_libname)
+$(libpcilupack_soname): $(libpcilupack_libname)
 	@ln -sf $(notdir $<) $@
 
 
