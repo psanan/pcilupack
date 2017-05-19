@@ -1,7 +1,7 @@
 # PETSc ILUPACK Plugin
 Maintained by [Patrick Sanan](www.patricksanan.com) (@psanan)
 
-This is a prototype of two plugin for [PETSc][1] which allows the use of preconditioners 
+This is a prototype of two plugins for [PETSc][1] which allows the use of preconditioners 
 from [ILUPACK][2], by [Matthias Bollhoefer][3].
 
 The first, `PCILUPACK`, wraps the multi-level ILU solver in ILUPACK.
