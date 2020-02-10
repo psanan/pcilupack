@@ -25,7 +25,7 @@ include $(PETSC_DIR)/lib/petsc/conf/variables
 # $(call SONAME_FUNCTION,libfoo,abiversion)
 SONAME_FUNCTION ?= $(1).$(SL_LINKER_SUFFIX).$(2)
 # $(call SL_LINKER_FUNCTION,libfoo,abiversion,libversion)
-SL_LINKER_FUNCTION ?= -shared  -Wl,-soname,$(call SONAME_FUNCTION,$(notdir $(1)),$(2)) 
+SL_LINKER_FUNCTION ?= -shared  -Wl,-soname,$(call SONAME_FUNCTION,$(notdir $(1)),$(2))
 
 PCILUPACK_VERSION_MAJOR := 0
 PCILUPACK_VERSION_MINOR := 1
@@ -38,13 +38,13 @@ libname_function = $(call SONAME_FUNCTION,$(1),$(libpcilupack_lib_version))
 basename_all     = $(basename $(basename $(basename $(basename $(1)))))
 sl_linker_args   = $(call SL_LINKER_FUNCTION,$(call basename_all,$@),$(libpcilupack_abi_version),$(libpcilupack_lib_version))
 
-libpcilupack_shared  := $(LIBDIR)/libpcilupack.$(SL_LINKER_SUFFIX) 
+libpcilupack_shared  := $(LIBDIR)/libpcilupack.$(SL_LINKER_SUFFIX)
 libpcilupack_soname  := $(call soname_function,$(LIBDIR)/libpcilupack)
 libpcilupack_libname := $(call libname_function,$(LIBDIR)/libpcilupack)
 libpcilupack_static  := $(LIBDIR)/libpcilupack.$(AR_LIB_SUFFIX)
 libpcilupack         := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libpcilupack_shared) $(libpcilupack_soname) $(libpcilupack_libname),$(libpcilupack_static))
 
-libpcildl_shared  := $(LIBDIR)/libpcildl.$(SL_LINKER_SUFFIX) 
+libpcildl_shared  := $(LIBDIR)/libpcildl.$(SL_LINKER_SUFFIX)
 libpcildl_soname  := $(call soname_function,$(LIBDIR)/libpcildl)
 libpcildl_libname := $(call libname_function,$(LIBDIR)/libpcildl)
 libpcildl_static  := $(LIBDIR)/libpcildl.$(AR_LIB_SUFFIX)
@@ -68,7 +68,7 @@ PCILUPACK_LIB           = $(PCILUPACK_C_SH_LIB_PATH) -L$(PCILUPACK_LIB_DIR) -lpc
 
 # compile an object from a generated c file
 $(OBJDIR)/%.o: %.c | $$(@D)/.DIR
-	$(PETSC_COMPILE) $(PCILUPACK_ILUPACK_INCLUDE) $(C_DEPFLAGS) $< -o $@ 
+	$(PETSC_COMPILE) $(PCILUPACK_ILUPACK_INCLUDE) $(C_DEPFLAGS) $< -o $@
 
 
 $(libpcilupack_static): $(libpcilupack.o) | $$(@D)/.DIR
@@ -144,7 +144,7 @@ ex50: ex50.o
 	${RM} ex50.o ex50.d
 
 ex50.o : ex50.c
-	$(PETSC_COMPILE) $(C_DEPFLAGS) $< -o $@ 
+	$(PETSC_COMPILE) $(C_DEPFLAGS) $< -o $@
 
 .PHONY: all clean print libpcilupack libpcildl install test test_pcildl test_pcilupack
 
