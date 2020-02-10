@@ -11,6 +11,19 @@
 #include "pcildl.h"
 #include <petsc/private/pcimpl.h>   /*I "petscpc.h" I*/
 
+/* Helper function to allocate a new string as a copy of a constant string. This 
+   must be freed later with PetscFree(). This is used to avoid passing a value
+   of type "const char *" to an argument of type "char *" in an ILUPACK function */
+static PetscErrorCode ConstantStringCopy(char ** p_string_copy, const char * constant_string)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBeginUser;
+  ierr = PetscMalloc(sizeof(constant_string),p_string_copy);CHKERRQ(ierr);
+  ierr = PetscStrcpy(*p_string_copy,constant_string);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
  /*elbow factor for the expected relative fill-in computed by the incomplete LDL^T factorization*/
 #define ELBOW    3.0
 
@@ -47,6 +60,7 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
   double wtime;
   PetscMPIInt rank;
 #endif
+  char *s_metisn, *s_metise, *s_amd, *s_rcm;
 
   PetscFunctionBegin;
 
@@ -132,18 +146,23 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
   /* turn on matching */
   options.matching = ildl->matching ? 1 : 0;
 
+  ierr = ConstantStringCopy(&s_metise,"metise");CHKERRQ(ierr);
+  ierr = ConstantStringCopy(&s_metisn,"metisn");CHKERRQ(ierr);
+  ierr = ConstantStringCopy(&s_rcm,"rcm");CHKERRQ(ierr);
+  ierr = ConstantStringCopy(&s_amd,"amd");CHKERRQ(ierr);
+
   switch (ildl->ordering) {
     case ILDL_ORDERING_METISE:
-      options.ordering = "metise";
+      options.ordering = s_metise;
       break;
     case ILDL_ORDERING_METISN:
-      options.ordering = "metisn";
+      options.ordering = s_metisn;
       break;
     case ILDL_ORDERING_RCM:
-      options.ordering = "rcm";
+      options.ordering = s_rcm;
       break;
     case ILDL_ORDERING_AMD:
-      options.ordering = "amd";
+      options.ordering = s_amd;
       break;
     default :
       SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"Unrecognized ILDL ordering type");
@@ -152,9 +171,27 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
   /* ----------------------------------------------------------------- */
   /* ----- preprocessing part: scaling and reordering the system ----- */
   /* memory for scaling and permutation */
-  p   =(integer *)MAlloc((size_t)B.nc*sizeof(integer),"CSRInterface:p");
-  invq=(integer *)MAlloc((size_t)B.nc*sizeof(integer),"CSRInterface:invq");
-  pcolscale=(FLOAT *)MAlloc((size_t)B.nc*sizeof(FLOAT),"CSRInterface:pcolscale");
+  {
+    char *s;
+
+    ierr = ConstantStringCopy(&s,"CSRInterface:p");CHKERRQ(ierr);
+    p   =(integer *)MAlloc((size_t)B.nc*sizeof(integer),s);
+    ierr = PetscFree(s);
+  }
+  {
+    char *s;
+
+    ierr = ConstantStringCopy(&s,"CSRInterface:invq");CHKERRQ(ierr);
+    invq=(integer *)MAlloc((size_t)B.nc*sizeof(integer),s);
+    ierr = PetscFree(s);
+  }
+  {
+    char *s;
+
+    ierr = ConstantStringCopy(&s,"CSRInterface:pcolscale");CHKERRQ(ierr);
+    pcolscale=(FLOAT *)MAlloc((size_t)B.nc*sizeof(FLOAT),s);
+    ierr = PetscFree(s);
+  }
   prowscale=pcolscale;
   /* matching turned on? */
   if (options.matching) {
@@ -204,14 +241,38 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
   /* bit 5: diagonal compensation is possibly done */
   
   /* auxiliary buffers */
-  ibuff=(integer *)MAlloc((size_t)14*B.nc*sizeof(integer),"CSRInterface:ibuff");
-  dbuff=(FLOAT *)  MAlloc((size_t)4*B.nc*sizeof(FLOAT),"CSRInterface:dbuff");
+  {
+    char *s;
+
+    ierr = ConstantStringCopy(&s,"CSRInterface:ibuff");CHKERRQ(ierr);
+    ibuff=(integer *)MAlloc((size_t)14*B.nc*sizeof(integer),s);
+    ierr = PetscFree(s);CHKERRQ(ierr);
+  }
+  {
+    char *s;
+
+    ierr = ConstantStringCopy(&s,"CSRInterface:dbuff");CHKERRQ(ierr);
+    dbuff=(FLOAT *)  MAlloc((size_t)4*B.nc*sizeof(FLOAT),s);
+    ierr = PetscFree(s);CHKERRQ(ierr);
+  }
   
   /* ILU buffers */
   /* just a simple guess at least 2nB+1! */
   mem=ELBOW*B.ia[B.nr]+1;
-  jlu=(integer *)MAlloc((size_t)mem*sizeof(integer),"DSYMildlfactor");
-  alu=(FLOAT *)  MAlloc((size_t)mem*sizeof(FLOAT),"DSYMildlfactor");
+  {
+    char *s;
+
+    ierr = ConstantStringCopy(&s,"DSYMildlfactor");CHKERRQ(ierr);
+    jlu=(integer *)MAlloc((size_t)mem*sizeof(integer),s);
+    ierr = PetscFree(s);CHKERRQ(ierr);
+  }
+  {
+    char *s;
+
+    ierr = ConstantStringCopy(&s,"DSYMildlfactor");CHKERRQ(ierr);
+    alu=(FLOAT *)  MAlloc((size_t)mem*sizeof(FLOAT),s);
+    ierr = PetscFree(s);CHKERRQ(ierr);
+  }
   
   /* since FORTRAN77 does not have memory allocation we need to provide */
   /* enough memory in advance (mem is a guess). If it turns out that the memory */
@@ -234,8 +295,20 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
 	    /* total amount of memory requested by the parameters */
 	    myimem=ELBOW*(size_t)B.ia[B.nr];
 	    mem+=myimem;
-	    jlu=(integer *)ReAlloc(jlu,mem*sizeof(integer),"CSRInterface:jlu");
-	    alu=(FLOAT *)  ReAlloc(alu,mem*sizeof(FLOAT),  "CSRInterface:alu");
+      {
+        char *s;
+
+        ierr = ConstantStringCopy(&s,"CSRInterface:jlu");CHKERRQ(ierr);
+        jlu=(integer *)ReAlloc(jlu,mem*sizeof(integer),s);
+        ierr = PetscFree(s);CHKERRQ(ierr);
+      }
+      {
+        char *s;
+
+        ierr = ConstantStringCopy(&s,  "CSRInterface:alu");CHKERRQ(ierr);
+        alu=(FLOAT *)  ReAlloc(alu,mem*sizeof(FLOAT),s);
+        ierr = PetscFree(s);CHKERRQ(ierr);
+      }
     } /* end if */
   } while (posiwk>0);
   if (ierr) {
@@ -260,6 +333,11 @@ static PetscErrorCode ILDLSetUp(PC_ILDL *ildl,PetscInt nA,PetscScalar val[],Pets
   free(a);
   free(ia);
   free(ja);
+
+  ierr = PetscFree(s_metise);
+  ierr = PetscFree(s_metisn);
+  ierr = PetscFree(s_rcm);
+  ierr = PetscFree(s_amd);
 
   /* Retain this data to apply the factors */
   ildl->p = p;
