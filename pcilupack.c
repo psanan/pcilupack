@@ -10,6 +10,19 @@
 */
 #define PCILUPACK_FILL_INFO
 
+/* Helper function to allocate a new string as a copy of a constant string. This 
+   must be freed later with PetscFree(). This is used to avoid passing a value
+   of type "const char *" to an argument of type "char *" in an ILUPACK function */
+static PetscErrorCode ConstantStringCopy(char ** p_string_copy, const char * constant_string)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBeginUser;
+  ierr = PetscMalloc(sizeof(constant_string),p_string_copy);CHKERRQ(ierr);
+  ierr = PetscStrcpy(*p_string_copy,constant_string);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 typedef struct {
   ILUPACKparam  param;
   SPARSEmat     B; 
@@ -28,11 +41,14 @@ typedef struct {
 /* A local function with the ILUpack setup calls */
 static PetscErrorCode ILUPACKSetUp(PC_ILUPACK *ilupack,PetscInt nA,PetscScalar val[],PetscInt row_ptr[],PetscInt col_ind[])
 {
-  integer       i,j,k,l,nnz=0;
-  int           ilupackerr;
+  PetscErrorCode ierr;
+  integer        i,j,k,l,nnz=0;
+  int            ilupackerr;
 
-  integer       *ia,*ja,nB;
-  FLOAT         *a; /* convenience */
+  integer        *ia,*ja,nB;
+  FLOAT          *a; /* convenience */
+
+  char           *s_metisn;
 
   PetscFunctionBegin;
 
@@ -151,7 +167,9 @@ static PetscErrorCode ILUPACKSetUp(PC_ILUPACK *ilupack,PetscInt nA,PetscScalar v
   ilupack->param.matching = 1;
 
   /* METIS-by-nodes ordering */
-  ilupack->param.ordering = "metisn";
+ 
+  ierr = ConstantStringCopy(&s_metisn,"metisn");CHKERRQ(ierr); /* free later */
+  ilupack->param.ordering = s_metisn;
 
   /* Parameter which controls how many levels. */
   ilupack->param.condest=(FLOAT) ilupack->condest;
@@ -163,13 +181,14 @@ static PetscErrorCode ILUPACKSetUp(PC_ILUPACK *ilupack,PetscInt nA,PetscScalar v
     SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_LIB,"ILUPACK encountered an error during factorization: %d",ilupackerr);
   } else {
 #ifdef PCILUPACK_FILL_INFO 
-    PetscErrorCode ierr;
     ierr=PetscPrintf(PETSC_COMM_WORLD,"factorization successful with %d levels completed\n", ilupack->PRE.nlev);CHKERRQ(ierr);
     ierr=PetscPrintf(PETSC_COMM_WORLD,"final elbow space factor=%8.2f\n",ilupack->param.elbow+0.005);CHKERRQ(ierr);
 #endif
   }
   ilupack->ilupackinit=PETSC_TRUE;
 #endif
+
+  ierr = PetscFree(s_metisn);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
