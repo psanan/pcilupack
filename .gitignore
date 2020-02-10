@@ -1,10 +1,13 @@
-# ignore typical build dir names
+# Typical build dir names
 build
 arch-*
 
-# we suggest that people just put ilupack here, so ignore it
-ilupack
-
-# This is an example which we copy from PETSc
+# An example which we copy from PETSc for testing
 ex50.c
 ex50
+
+# OS X
+.DS_Store
+
+# Vim
+.*.sw[omp]
