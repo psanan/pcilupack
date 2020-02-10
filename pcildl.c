@@ -5,10 +5,9 @@
  /*we only use the real double precision version as "FLOAT"*/
 #define _DOUBLE_REAL_
 
-#include "ilupack.h"
+#include "ilupack.h" /* has to be FIRST to avoid warnings about _Complex */
 #include "ilupackmacros.h"
 #include "blas.h"
-#include "ilupack/include/ilupack.h" /* has to be FIRST to avoid warnings about _Complex */
 #include "pcildl.h"
 #include <petsc/private/pcimpl.h>   /*I "petscpc.h" I*/
 

@@ -1,4 +1,4 @@
-#include "ilupack/include/ilupack.h" /* has to be FIRST to avoid warnings about _Complex */
+#include "ilupack.h" /* has to be FIRST to avoid warnings about _Complex */
 #include "pcilupack.h"
 #include <petsc/private/pcimpl.h>   /*I "petscpc.h" I*/
 
