@@ -1,5 +1,5 @@
 # PETSc ILUPACK Plugin
-Maintained by [Patrick Sanan](www.patricksanan.com) (@psanan)
+Maintained by [Patrick Sanan](www.patricksanan.com)
 
 This is a prototype of two plugins for [PETSc][1] which allows the use of preconditioners 
 from [ILUPACK][2], by [Matthias Bollhoefer][3].
@@ -10,10 +10,11 @@ The second, `PCILDL`, exposes a single-layer ILDL preconditioner,
 with MC64-based symmetric weighted matching preprocessing.
 
 ## Acknowledgments
+
 The makefile, install script, and registration code is adapted from 
 [the DofColumns plugin][4] by [Tobin Isaac][5].
 
-## Building and Installation  
+## Building and installation  
 
 You need a working build of PETSc, configured with real, double precision scalars
 and 32-bit integers (the defaults).
