@@ -1,7 +1,7 @@
 # PETSc ILUPACK Plugin
 Maintained by [Patrick Sanan](www.patricksanan.com)
 
-This is a prototype of two plugins for [PETSc][1] which allows the use of preconditioners 
+This is a prototype of two plugins for [PETSc][1] which allows the use of preconditioners
 from [ILUPACK][2], by [Matthias Bollhoefer][3].
 
 The first, `PCILUPACK`, wraps the multi-level ILU solver in ILUPACK.
@@ -11,18 +11,21 @@ with MC64-based symmetric weighted matching preprocessing.
 
 ## Acknowledgments
 
-The makefile, install script, and registration code is adapted from 
+The makefile, install script, and registration code is adapted from
 [the DofColumns plugin][4] by [Tobin Isaac][5].
 
-## Building and installation  
+## Building and installation
 
-You need a working build of PETSc, configured with real, double precision scalars
+You need a working build of PETSc 3.12 or later (versions back to 3.7 may work, but we don't maintain support), configured with real, double precision scalars
 and 32-bit integers (the defaults).
 Visit [the PETSC website][1] for instructions.
 
-You need a working ILUPACK library. See [the ILUPACK website][2].
+You need a working ILUPACK v2.4 library. See [the ILUPACK website][2].
 Note that you need to provide your own compiled HSL object files
 in `notdistributed/` (see example makefiles).
+
+You may find [these sample instructions for ILUPACK](ILUPACK_build_example.md) helpful,
+but bear in mind that they are not general.
 
 To build [and install] the plugin,
 ````
