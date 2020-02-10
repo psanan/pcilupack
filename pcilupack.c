@@ -240,13 +240,13 @@ static PetscErrorCode PCApply_ILUPACK(PC pc,Vec vecB,Vec vecX)
   PetscFunctionBegin;
   
   ierr = VecGetSize(vecB,&nB);CHKERRQ(ierr); /* note this is uniprocessor only */
-  ierr = VecGetArrayRead(vecB,&b);CHKERRQ(ierr); 
+  ierr = VecGetArray(vecB,&b);CHKERRQ(ierr); 
   ierr = VecGetArray(vecX,&x);CHKERRQ(ierr);
 
   AMGsol(&ilupack->PRE,&ilupack->param,b,x);
   
   ierr = VecRestoreArray(vecX,&x);CHKERRQ(ierr);
-  ierr = VecRestoreArrayRead(vecB,&b);CHKERRQ(ierr);
+  ierr = VecRestoreArray(vecB,&b);CHKERRQ(ierr);
   
   PetscFunctionReturn(0);
 }
