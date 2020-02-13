@@ -12,40 +12,40 @@ for ILUPACK. See the ILUPACK documentation for general instructions.
 
 3. Copy the downloaded file to the desired destination
 
-            mv $HOME/Downloads/ilupack05102016.zip $HOME/code
+        mv $HOME/Downloads/ilupack05102016.zip $HOME/code
 
 4. Unzip
 
-            cd $HOME/code
-            unzip ilupack05102016.zip
+        cd $HOME/code
+        unzip ilupack05102016.zip
 
 5. Obtain MC21 and MC64 from HSL, by visiting the [HSL website](http://www.hsl.rl.ac.uk/),
 navigating to the sub-pages for MC21 and MC64, and requesting the libraries under an
 appropriate license. When approved, download `mc21-1.0.0.tar.gz` and `mc64-1.6.0.tar.gz`
 and unpack them
 
-            mv $HOME/Downloads/mc21-1.0.0.tar.gz $HOME/code
-            mv $HOME/Downloads/mc64-1.6.0.tar.gz $HOME/code
-            cd $HOME/code
-            tar xzvf mc21-1.0.0.tar.gz
-            tar xzvf mc64-1.6.0.tar.gz
+        mv $HOME/Downloads/mc21-1.0.0.tar.gz $HOME/code
+        mv $HOME/Downloads/mc64-1.6.0.tar.gz $HOME/code
+        cd $HOME/code
+        tar xzvf mc21-1.0.0.tar.gz
+        tar xzvf mc64-1.6.0.tar.gz
 
 6. Compile the required HSL objects inside ILUPACK's directory
 
-            cp mc64-1.6.0/src/mc64*.f ilupack/notdistributed/
-            cp mc21-1.0.0/src/mc21*.f ilupack/notdistributed/
-            cd ilupack/notdistributed
-            gfortran -O3 -fPIC -c -o MC21D.o mc21d.f
-            gfortran -O3 -fPIC -c -o MC64D.o mc64d.f
-            gfortran -O3 -fPIC -c -o MC21S.o mc21s.f
-            gfortran -O3 -fPIC -c -o MC64S.o mc64s.f
-            # quicker: for file in *.f; do stem=${file%.f}; gfortran -O3 -fPIC -c -o ${stem^^}.o $file; done
+        cp mc64-1.6.0/src/mc64*.f ilupack/notdistributed/
+        cp mc21-1.0.0/src/mc21*.f ilupack/notdistributed/
+        cd ilupack/notdistributed
+        gfortran -O3 -fPIC -c -o MC21D.o mc21d.f
+        gfortran -O3 -fPIC -c -o MC64D.o mc64d.f
+        gfortran -O3 -fPIC -c -o MC21S.o mc21s.f
+        gfortran -O3 -fPIC -c -o MC64S.o mc64s.f
+        # quicker: for file in *.f; do stem=${file%.f}; gfortran -O3 -fPIC -c -o ${stem^^}.o $file; done
 
 7. Test ILUPACK by building a 32-bit integer, double, symmetric example
 
-            cd ilupack/simple_examples
-            make -f MC64/makefile.GNU64 MAIN=dmainsym
-            ./dmainsym.out
+        cd ilupack/simple_examples
+        make -f MC64/makefile.GNU64 MAIN=dmainsym
+        ./dmainsym.out
 
 Output:
  
